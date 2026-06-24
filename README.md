@@ -1,68 +1,70 @@
-# Slicing Floorplan Sizing Project
+# 切割型 Floorplan Sizing 项目
 
-This project implements a slicing floorplan sizing workflow for the data structure course poster.
-The current version also uses a simulated annealing style search to improve the slicing structure.
+本项目对应数据结构课程结课海报的实现内容，主题是用栈、二叉树、排序与剪枝等数据结构方法，求解 EDA 中的 slicing floorplan sizing 问题，并生成海报中使用的实验图像和结果数据。
 
-## Topic
+当前版本在基础切割树求解流程上加入了轻量的模拟退火式搜索，用于优化布局面积和长宽比。
 
-Use stacks and binary trees to solve an EDA floorplan sizing problem:
+## 项目目标
 
-- `Stack`: parse postfix slicing expressions
-- `Binary tree`: represent the slicing structure
-- `Sorting`: rank candidate solutions and summarize experiments
+给定一组允许旋转的矩形模块，构造切割型二叉树表示布局结构，计算每个子布局可能形成的外接矩形尺寸集合，并在此基础上恢复最终模块坐标，输出布局图、面积指标和收敛结果。
 
-## Scales
+## 对应课程海报
 
-The experiments follow the course project requirement:
+该仓库中的代码、实验结果和输出图像对应数据结构课程海报中的以下内容：
 
-- Small: 20 modules
-- Medium: 50 modules
-- Large: 100 modules
+- `Research Question`：EDA 中布图规划与 floorplan sizing 问题
+- `Methods`：栈解析后缀表达式、二叉树表示切割结构、shape curve 自底向上合并、剪枝、模拟退火优化
+- `Results`：Small / Medium / Large 三种规模下的布图结果、指标表和退火收敛曲线
 
-## Files
+## 数据结构要点
 
-- `src/floorplan.py`: core data structures, shape-curve sizing, and slicing-tree optimization
-- `src/visualize.py`: plots and layout rendering
-- `run_experiments.py`: generate data, run experiments, save images and metrics
-- `outputs/`: generated figures and JSON metrics
+- `栈`：解析后缀 slicing 表达式，恢复切割树结构
+- `二叉树`：表示模块合并关系与整体切割布局
+- `列表/排序`：维护 shape curve 候选并进行筛选
+- `剪枝`：删除被支配的 `(width, height)` 候选，控制状态规模
 
-## Run
+## 实验规模
+
+- Small：20 个模块
+- Medium：50 个模块
+- Large：100 个模块
+
+## 主要文件
+
+- `src/floorplan.py`：核心数据结构、shape curve 计算、切割树评估与优化
+- `src/visualize.py`：布局绘图、曲线绘图和结果可视化
+- `run_experiments.py`：生成实验数据、运行不同规模实验并保存结果
+- `outputs/`：基础实验输出结果
+- `outputs_baseline_stage1/`：阶段一基线结果
+- `outputs_optimized_stage2/`：阶段二优化后结果
+
+## 运行方式
 
 ```powershell
 python run_experiments.py
 ```
 
-## Outputs
+## 输出内容
 
-The script generates:
+运行后会生成：
 
-- floorplan layout images for small / medium / large cases
-- shape-curve plots for each case
-- a summary chart of runtime / area / aspect ratio
-- `metrics.json` for poster writing
+- 三种规模下的布局图
+- 收敛过程曲线
+- 对比图和汇总图
+- `metrics.json` 等指标文件
+- 用于海报撰写的实验总结文档
 
-## Algorithm
+## 算法流程概述
 
-1. Randomly generate rectangular modules with rotatable width and height.
-2. Randomly build a slicing binary tree and convert it to a postfix expression.
-3. Parse the postfix expression with a stack to rebuild the tree.
-4. Compute shape curves bottom-up.
-5. Prune dominated `(width, height)` pairs.
-6. Use simulated annealing style local moves on the slicing tree to improve area and aspect ratio.
-7. Choose the best solution, then reconstruct coordinates for all modules.
+1. 随机生成一组可旋转矩形模块。
+2. 构造 slicing 二叉切割树，并编码为后缀表达式。
+3. 使用栈解析后缀表达式，恢复树结构。
+4. 对切割树执行自底向上的 shape curve 计算。
+5. 对候选尺寸执行 Pareto 剪枝，删除被支配状态。
+6. 通过模拟退火式局部扰动优化切割树结构。
+7. 从根节点最佳候选回溯，恢复所有模块坐标并输出布局。
 
-## Borrowed Ideas from the EDA Reference Project
+## 坐标约定
 
-The local reference project is a general placement project rather than a slicing floorplan project.
-This project borrows only the ideas that fit the course topic:
-
-- search-based optimization instead of a single random construction
-- explicit cost design
-- convergence visualization
-
-The slicing representation, postfix parsing, and exact shape-curve evaluation remain the core of this project.
-
-## Coordinate Convention
-
-- `H`: horizontal cut, one child on top of the other
-- `V`: vertical cut, one child placed to the right of the other
+- `H`：水平切割，上下堆叠
+- `V`：垂直切割，左右并排
